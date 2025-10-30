@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel de Atendimento</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Painel de Atendimento</h1>
+
+<!-- Abas -->
+<div class="tabs">
+  <div class="tab active" data-tab="pending">Pendentes</div>
+  <div class="tab" data-tab="inprogress">Em Andamento</div>
+  <div class="tab" data-tab="finished">Finalizadas</div>
+</div>
+
+<!-- Conteúdo das abas -->
+<div class="tab-content active" id="pending">
+  <div id="pendingList" class="conversations"></div>
+</div>
+<div class="tab-content" id="inprogress">
+  <div id="inprogressList" class="conversations"></div>
+</div>
+<div class="tab-content" id="finished">
+  <div id="finishedList" class="conversations"></div>
+</div>
+
+<!-- Dashboard centralizado -->
+<div class="dashboard-container">
+  <div class="messages">
+    <div id="msgList"></div>
+    <div class="input-container">
+      <input type="text" id="messageInput" placeholder="Digite sua mensagem">
+      <button id="sendBtn">Enviar</button>
+      <button id="startBtn">Iniciar</button>
+      <button id="finishBtn">Finalizar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Som de notificação -->
+<audio id="notifSound" src="notification.mp3" preload="auto"></audio>
+
+<!-- Script para alternar abas -->
+<script>
+  const tabs = document.querySelectorAll('.tab');
+  const contents = document.querySelectorAll('.tab-content');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      contents.forEach(c => c.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.tab).classList.add('active');
+    });
+  });
+</script>
+
+<!-- Script principal -->
+<script src="script.js"></script>
+
+</body>
+</html>
