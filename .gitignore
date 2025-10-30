@@ -28,3 +28,6 @@ build/
 
 # Nodemon
 *.pid
+
+# Lock files
+package-lock.json
