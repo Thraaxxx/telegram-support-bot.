@@ -1,3 +1,4 @@
+// frontend/js/script.js
 let selectedConversationId = null;
 let agentName = null;
 const lastMessageId = {}; // guarda última mensagem exibida por conversa
@@ -5,6 +6,7 @@ let allConversations = []; // todas as conversas carregadas
 
 const startBtn = document.getElementById('startBtn');
 const finishBtn = document.getElementById('finishBtn');
+const imageInput = document.getElementById('imageInput'); // input de imagens
 
 // ======================== CARREGAR CONVERSAS ========================
 async function loadConversations() {
@@ -13,10 +15,6 @@ async function loadConversations() {
     const convs = await res.json();
     allConversations = convs;
     renderConversations();
-    if (!c.claimed_by) pendingList.appendChild(div);
-else if (c.claimed_by && !c.finished) inprogressList.appendChild(div);
-else if (c.finished) finishedList.appendChild(div);
-
   } catch (err) {
     console.error('Erro ao carregar conversas:', err);
   }
@@ -36,7 +34,9 @@ function renderConversations() {
     const div = document.createElement('div');
     div.className = 'conversation';
     div.dataset.id = c.id;
-    div.textContent = `ChatID: ${c.chat_id} | Última mensagem: ${c.last_message || ''}`;
+    const last = c.last_message ? escapeHtml(c.last_message) : '(sem mensagens ainda)';
+    div.innerHTML = `<div class="conv-top"><strong>Chat:</strong> ${escapeHtml(c.chat_id)}</div>
+                     <div class="conv-last">${last}</div>`;
     if (c.claimed_by) div.classList.add('claimed');
 
     div.onclick = () => selectConversation(c.id, div);
@@ -59,46 +59,77 @@ function selectConversation(id, divElement) {
   finishBtn.style.display = conv && conv.claimed_by && !conv.finished ? 'inline-block' : 'none';
 }
 
-// ======================== CARREGAR MENSAGENS ========================
+// ======================== CARREGAR MENSAGENS (SEM PISCAR) ========================
 async function loadMessages(convId) {
   try {
     const res = await fetch(`/conversations/${convId}/messages`);
     const msgs = await res.json();
     const msgList = document.getElementById('msgList');
 
-    const conv = allConversations.find(c => c.id == convId);
-
-    // ==================== NOVO: REABRIR CONVERSA FINALIZADA ====================
+    const conv = allConversations.find(c => c.id == convId) || {};
     const lastId = lastMessageId[convId] || 0;
-    const newUserMsgs = msgs.filter(m => m.id > lastId && m.sender === 'user');
+    const newMsgs = msgs.filter(m => m.id > lastId);
 
-    if (conv.finished && newUserMsgs.length > 0) {
-      // Reabre a conversa no backend
+    // Reabre conversa finalizada se usuário enviou mensagem
+    if (conv.finished && newMsgs.some(m => m.sender === 'user')) {
       await fetch(`/conversations/${convId}/reopen`, { method: 'POST' });
-      conv.finished = false; // atualiza localmente
+      conv.finished = false;
       loadConversations();
       startBtn.style.display = 'inline-block';
       finishBtn.style.display = 'none';
     }
 
-    // ==================== NOTIFICAÇÃO ====================
-    if (newUserMsgs.length > 0) {
-      document.getElementById('notifSound').play();
+    // Toca som de notificação apenas para novas mensagens
+    if (newMsgs.length > 0) {
+      const notif = document.getElementById('notifSound');
+      if (notif) {
+        notif.currentTime = 0;
+        notif.play().catch(() => {});
+      }
       document.querySelectorAll('.conversation').forEach(div => {
-        if (div.dataset.id == convId) div.style.backgroundColor = '#ffeb3b';
+        if (div.dataset.id == convId) div.style.backgroundColor = '#fff4cc';
       });
     }
 
     lastMessageId[convId] = msgs.length > 0 ? msgs[msgs.length - 1].id : 0;
 
-    // Renderiza mensagens
-    msgList.innerHTML = '';
-    msgs.forEach(m => {
-      const p = document.createElement('p');
-      p.textContent = `[${m.sender}] ${m.text}`;
-      msgList.appendChild(p);
+    // Renderiza apenas novas mensagens
+    newMsgs.forEach(m => {
+      const bubble = document.createElement('div');
+      bubble.className = 'msg-bubble ' + (m.sender === 'user' ? 'msg-user' : 'msg-agent');
+
+      const senderName = m.sender === 'user' ? 'Cliente' : (conv.claimed_by || agentName || 'Atendente');
+
+      const senderSpan = document.createElement('div');
+      senderSpan.className = 'sender';
+      senderSpan.textContent = senderName;
+      bubble.appendChild(senderSpan);
+
+      if (m.image_url) {
+        const img = document.createElement('img');
+        img.className = 'msg-photo';
+        img.src = m.image_url.startsWith('/') ? window.location.origin + m.image_url : m.image_url;
+        img.alt = 'imagem enviada';
+        img.onclick = () => window.open(img.src, '_blank');
+        bubble.appendChild(img);
+      }
+
+      if (m.text) {
+        const textSpan = document.createElement('div');
+        textSpan.className = 'text';
+        textSpan.textContent = m.text;
+        bubble.appendChild(textSpan);
+      }
+
+      msgList.appendChild(bubble);
     });
-    msgList.scrollTop = msgList.scrollHeight;
+
+    // Scroll só se estiver próximo do fim
+    const nearBottom = msgList.scrollTop + msgList.clientHeight >= msgList.scrollHeight - 50;
+    if (nearBottom && newMsgs.length > 0) {
+      msgList.scrollTo({ top: msgList.scrollHeight, behavior: 'smooth' });
+    }
+
   } catch (err) {
     console.error('Erro ao carregar mensagens:', err);
   }
@@ -128,35 +159,42 @@ async function claimConversation(convId, convDiv) {
   }
 }
 
-// ======================== ENVIAR MENSAGEM ========================
+// ======================== ENVIAR MENSAGEM (TEXTO + IMAGEM) ========================
 document.getElementById('sendBtn').onclick = async () => {
-  const text = document.getElementById('messageInput').value;
-  if (!text) return alert('Digite a mensagem');
   if (!selectedConversationId) return alert('Selecione uma conversa antes');
 
   const convDiv = document.querySelector(`.conversation[data-id="${selectedConversationId}"]`);
-
   if (!convDiv.classList.contains('claimed')) {
     await claimConversation(selectedConversationId, convDiv);
   }
 
+  const text = document.getElementById('messageInput').value.trim();
+  const imageFile = imageInput ? imageInput.files[0] : null;
+
+  if (!text && !imageFile) return alert('Digite uma mensagem ou selecione uma imagem');
+
+  const formData = new FormData();
+  if (text) formData.append('text', text);
+  if (imageFile) formData.append('image', imageFile);
+
   try {
     const res = await fetch(`/conversations/${selectedConversationId}/send`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text })
+      body: formData
     });
     const data = await res.json();
     if (data.error) return alert('Erro ao enviar: ' + data.error);
 
     document.getElementById('messageInput').value = '';
+    if (imageInput) imageInput.value = '';
     loadMessages(selectedConversationId);
+    loadConversations();
   } catch (err) {
     console.error(err);
   }
 };
 
-// ======================== BOTÕES INICIAR / FINALIZAR ========================
+// ======================== INICIAR / FINALIZAR ========================
 startBtn.onclick = async () => {
   if (!selectedConversationId) return alert("Selecione uma conversa antes");
   const convDiv = document.querySelector(`.conversation[data-id="${selectedConversationId}"]`);
@@ -172,20 +210,16 @@ finishBtn.onclick = async () => {
     const data = await res.json();
     if (data.error) return alert('Erro ao finalizar: ' + data.error);
 
-    // Atualiza visualmente a interface
-    alert(`✅ Conversa #${data.conversation.id} finalizada com sucesso.`);
+    alert("✅ Conversa finalizada com sucesso.");
     startBtn.style.display = 'none';
     finishBtn.style.display = 'none';
     selectedConversationId = null;
     document.getElementById('msgList').innerHTML = '';
-
-    // Recarrega as listas para mover a conversa para “Finalizados”
     loadConversations();
   } catch (err) {
     console.error(err);
   }
 };
-
 
 // ======================== ATUALIZAÇÃO AUTOMÁTICA ========================
 setInterval(() => {
@@ -195,3 +229,14 @@ setInterval(() => {
 
 // ======================== INICIALIZAÇÃO ========================
 loadConversations();
+
+// ======================== Helpers ========================
+function escapeHtml(unsafe) {
+  if (!unsafe) return '';
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}

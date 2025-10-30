@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel de Atendimento</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>Painel de Atendimento</h1>
+  </header>
+
+  <div class="main-container">
+    <!-- Sidebar de conversas -->
+    <aside class="sidebar">
+      <div class="tabs">
+        <div class="tab active" data-tab="pending">Pendentes</div>
+        <div class="tab" data-tab="inprogress">Em Andamento</div>
+        <div class="tab" data-tab="finished">Finalizadas</div>
+      </div>
+
+      <!-- Conteúdo das abas -->
+      <div class="tab-content active" id="pending">
+        <div id="pendingList" class="conversations"></div>
+      </div>
+      <div class="tab-content" id="inprogress">
+        <div id="inprogressList" class="conversations"></div>
+      </div>
+      <div class="tab-content" id="finished">
+        <div id="finishedList" class="conversations"></div>
+      </div>
+    </aside>
+
+    <!-- Área de mensagens -->
+    <section class="chat-section">
+      <div class="messages">
+        <div id="msgList" class="msg-list">
+          <!-- mensagens serão renderizadas via JS -->
+        </div>
+
+        <div class="input-container">
+          <input type="text" id="messageInput" placeholder="Digite sua mensagem">
+          <input type="file" id="imageInput" accept="image/*" style="margin-left:5px;">
+          <button id="sendBtn" class="btn">Enviar</button>
+          <button id="startBtn" class="btn start-btn" style="display:none;">Iniciar</button>
+          <button id="finishBtn" class="btn finish-btn" style="display:none;">Finalizar</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Som de notificação -->
+  <audio id="notifSound" src="sounds/notification.mp3" preload="auto"></audio>
+
+  <!-- Scripts -->
+  <script src="js/script.js"></script>
+  <script>
+    // Alternar abas
+    const tabs = document.querySelectorAll('.tab');
+    const contents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        contents.forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    // Auto scroll das mensagens
+    const msgList = document.getElementById('msgList');
+    const observer = new MutationObserver(() => {
+      msgList.scrollTop = msgList.scrollHeight;
+    });
+    observer.observe(msgList, { childList: true });
+  </script>
+</body>
+</html>

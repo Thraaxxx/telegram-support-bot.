@@ -1,0 +1,279 @@
+/* ======================== Reset e Fontes ======================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #eef2f7;
+  color: #333;
+}
+
+/* ======================== Header ======================== */
+header {
+  background: linear-gradient(90deg, #4b6cb7, #182848);
+  color: white;
+  padding: 25px 20px;
+  text-align: center;
+  font-size: 2em;
+  font-weight: 700;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  border-bottom-left-radius: 15px;
+  border-bottom-right-radius: 15px;
+}
+
+/* ======================== Layout ======================== */
+.main-container {
+  display: flex;
+  height: calc(100vh - 90px);
+  padding: 15px;
+  gap: 15px;
+}
+
+/* ======================== Sidebar ======================== */
+.sidebar {
+  width: 28%;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+/* Abas */
+.tabs {
+  display: flex;
+  background: #4b6cb7;
+  border-bottom: 1px solid #182848;
+}
+.tab {
+  flex: 1;
+  padding: 14px 0;
+  text-align: center;
+  cursor: pointer;
+  color: white;
+  font-weight: 600;
+  transition: background 0.3s, transform 0.2s;
+}
+.tab:hover {
+  background: #6b8dd6;
+  transform: scale(1.05);
+}
+.tab.active {
+  background: #182848;
+}
+
+/* Lista de conversas */
+.tab-content {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  background: #f0f4fb;
+  padding: 10px;
+}
+.tab-content.active {
+  display: block;
+}
+.conversation {
+  padding: 14px;
+  margin-bottom: 12px;
+  border-radius: 15px;
+  cursor: pointer;
+  background: linear-gradient(120deg, #ffffff, #f9fbff);
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.05), 0 3px 8px rgba(0,0,0,0.08);
+  transition: all 0.2s;
+  word-wrap: break-word;
+}
+.conversation:hover {
+  transform: translateX(5px);
+  background: linear-gradient(120deg, #6b8dd6, #4b6cb7);
+  color: white;
+}
+.conversation.selected {
+  background: #182848;
+  color: white;
+  font-weight: 700;
+}
+.conversation.claimed {
+  border-left: 5px solid #4b6cb7;
+}
+
+/* ======================== Chat Section ======================== */
+.chat-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Área de mensagens */
+.messages {
+  background: #fefeff;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Lista de mensagens */
+.msg-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 15px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+/* Balões de mensagem */
+.msg-bubble {
+  max-width: 70%;
+  padding: 12px 18px;
+  border-radius: 25px;
+  position: relative;
+  word-wrap: break-word;
+  font-size: 0.95em;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.05), 0 4px 15px rgba(0,0,0,0.08);
+  animation: fadeIn 0.2s ease-in-out;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-wrap: break-word;
+  line-height: 1.35;
+}
+
+/* Nome do remetente (dentro do balão) */
+.msg-bubble .sender {
+  font-weight: 700;
+  font-size: 0.80rem;
+  opacity: 0.95;
+  margin-bottom: 6px;
+}
+
+/* Cliente */
+.msg-user {
+  background: linear-gradient(120deg, #ffd194, #ffb347);
+  color: #333;
+  align-self: flex-start;
+  border-bottom-left-radius: 8px;
+  margin-left: 5px;
+  position: relative;
+  padding: 14px 16px; /* ajustado para incluir sender */
+}
+
+/* Atendente */
+.msg-agent {
+  background: linear-gradient(120deg, #6a11cb, #2575fc);
+  color: white;
+  align-self: flex-end;
+  border-bottom-right-radius: 8px;
+  margin-right: 5px;
+  position: relative;
+  padding: 14px 16px; /* ajustado para incluir sender */
+}
+
+/* Imagem dentro do balão (miniatura, clicável) */
+.msg-photo {
+  width: 220px;            /* largura fixa de miniatura */
+  max-width: 45vw;        /* responsiva: nunca maior que 45% da viewport */
+  max-height: 160px;      /* limita altura para evitar imagens gigantes */
+  object-fit: cover;      /* recorta centralizado se necessário */
+  border-radius: 10px;
+  display: block;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  border: 1px solid rgba(0,0,0,0.06);
+  cursor: pointer;        /* indica que é clicável */
+  transition: transform .15s ease;
+}
+
+/* efeito hover sutil para indicar interatividade */
+.msg-photo:hover {
+  transform: scale(1.03);
+}
+
+/* versão menor para telas muito pequenas */
+@media (max-width: 480px) {
+  .msg-photo {
+    width: 140px;
+    max-height: 120px;
+  }
+}
+
+
+/* Texto das mensagens */
+.msg-bubble .text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.95rem;
+}
+
+/* ======================== Input e Botões ======================== */
+.input-container {
+  display: flex;
+  gap: 12px;
+  margin-top: auto;
+}
+.input-container input {
+  flex: 1;
+  padding: 14px 20px;
+  border-radius: 30px;
+  border: 1px solid #ccc;
+  outline: none;
+  font-size: 1em;
+  transition: all 0.2s;
+}
+.input-container input:focus {
+  border-color: #2575fc;
+}
+
+/* Botões */
+.btn {
+  padding: 14px 22px;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  font-weight: bold;
+  color: white;
+  transition: all 0.3s;
+  font-size: 0.95em;
+}
+.btn:hover {
+  opacity: 0.9;
+  transform: scale(1.05);
+}
+.start-btn {
+  background: #6a11cb;
+}
+.finish-btn {
+  background: #2575fc;
+}
+#sendBtn {
+  background: #ff8c00;
+}
+
+/* ======================== Animações ======================== */
+@keyframes fadeIn {
+  from {opacity: 0; transform: translateY(5px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+
+/* ======================== Scroll da lista de mensagens ======================== */
+.msg-list::-webkit-scrollbar {
+  width: 6px;
+}
+.msg-list::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.2);
+  border-radius: 3px;
+}
+
+/* ======================== Responsividade pequena ======================== */
+@media (max-width: 800px) {
+  .sidebar { width:100%; order: 2; }
+  .chat-section { order: 1; }
+  .msg-bubble { max-width: 50%; }
+}

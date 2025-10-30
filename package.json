@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "start": "node backend/index.js",
+    "dev": "nodemon backend/index.js"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +16,7 @@
   "dependencies": {
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "multer": "^2.0.2",
     "sqlite3": "^5.1.7",
     "telegraf": "^4.16.3"
   }
