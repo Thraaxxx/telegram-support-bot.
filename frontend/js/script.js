@@ -7,6 +7,15 @@ let allConversations = []; // todas as conversas carregadas
 const startBtn = document.getElementById('startBtn');
 const finishBtn = document.getElementById('finishBtn');
 const imageInput = document.getElementById('imageInput'); // input de imagens
+const messageInput = document.getElementById('messageInput'); // input de texto
+
+// ======================== ENVIAR MENSAGEM AO PRESSIONAR ENTER ========================
+messageInput.addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault(); // previne pular linha
+    document.getElementById('sendBtn').click(); // simula clique no botão "Enviar"
+  }
+});
 
 // ======================== CARREGAR CONVERSAS ========================
 async function loadConversations() {
@@ -70,7 +79,6 @@ async function loadMessages(convId) {
     const lastId = lastMessageId[convId] || 0;
     const newMsgs = msgs.filter(m => m.id > lastId);
 
-    // Reabre conversa finalizada se usuário enviou mensagem
     if (conv.finished && newMsgs.some(m => m.sender === 'user')) {
       await fetch(`/conversations/${convId}/reopen`, { method: 'POST' });
       conv.finished = false;
@@ -79,7 +87,6 @@ async function loadMessages(convId) {
       finishBtn.style.display = 'none';
     }
 
-    // Toca som de notificação apenas para novas mensagens
     if (newMsgs.length > 0) {
       const notif = document.getElementById('notifSound');
       if (notif) {
@@ -93,7 +100,6 @@ async function loadMessages(convId) {
 
     lastMessageId[convId] = msgs.length > 0 ? msgs[msgs.length - 1].id : 0;
 
-    // Renderiza apenas novas mensagens
     newMsgs.forEach(m => {
       const bubble = document.createElement('div');
       bubble.className = 'msg-bubble ' + (m.sender === 'user' ? 'msg-user' : 'msg-agent');
@@ -124,7 +130,6 @@ async function loadMessages(convId) {
       msgList.appendChild(bubble);
     });
 
-    // Scroll só se estiver próximo do fim
     const nearBottom = msgList.scrollTop + msgList.clientHeight >= msgList.scrollHeight - 50;
     if (nearBottom && newMsgs.length > 0) {
       msgList.scrollTo({ top: msgList.scrollHeight, behavior: 'smooth' });

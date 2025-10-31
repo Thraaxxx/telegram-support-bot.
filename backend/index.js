@@ -204,7 +204,7 @@ bot.on('photo', async (ctx) => {
       }
     });
 
-    ctx.reply('✅ Foto recebida com sucesso!').catch(console.error);
+
   } catch (error) {
     console.error('Erro ao processar imagem:', error);
     ctx.reply('❌ Ocorreu um erro ao processar a imagem.').catch(console.error);
